@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Typeless CAD Viewport</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Share+Tech+Mono&family=Space+Grotesk:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-color: #050507;
+    --cyan: #00f0ff;
+    --cyan-glow: rgba(0, 240, 255, 0.25);
+    --text-main: #ffffff;
+    --text-muted: #8c92a4;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    font-family: 'Space Grotesk', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  .bg-hero {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 20% 50%, rgba(20, 30, 45, 0.6) 0%, rgba(5, 5, 7, 0.95) 70%),
+                url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect fill="%23050507" width="100" height="100"/><circle cx="20" cy="70" r="40" fill="%23101825" opacity="0.5"/></svg>');
+    background-size: cover;
+    background-position: center;
+    z-index: 1;
+    opacity: 0.7;
+    transition: opacity 0.5s ease;
+  }
+
+  .container {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 1200px;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 100vh;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .fullscreen-btn {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: var(--text-muted);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    padding: 8px 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+  }
+
+  .fullscreen-btn:hover {
+    border-color: var(--cyan);
+    color: var(--cyan);
+    box-shadow: 0 0 8px var(--cyan-glow);
+  }
+
+  .logo-tag {
+    font-family: 'Share Tech Mono', monospace;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    letter-spacing: 0.1em;
+  }
+
+  .main-content {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 40px;
+    align-items: center;
+    margin: auto 0;
+  }
+
+  @media (max-width: 900px) {
+    .main-content {
+      grid-template-columns: 1fr;
+      gap: 30px;
+    }
+    .container {
+      padding: 20px;
+    }
+  }
+
+  .title-section {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .brand-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(3rem, 9vw, 7.5rem);
+    font-weight: 900;
+    color: var(--cyan);
+    line-height: 0.9;
+    letter-spacing: -0.02em;
+    text-shadow: 0 0 40px var(--cyan-glow);
+    text-transform: uppercase;
+  }
+
+  .sub-title {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: clamp(1.1rem, 2.2vw, 1.6rem);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-main);
+    line-height: 1.4;
+  }
+
+  .info-card {
+    position: relative;
+    background: rgba(10, 14, 23, 0.6);
+    border: 1px solid rgba(0, 240, 255, 0.3);
+    padding: 32px;
+    backdrop-filter: blur(10px);
+    clip-path: polygon(
+      0 0, 
+      calc(100% - 20px) 0, 
+      100% 20px, 
+      100% 100%, 
+      20px 100%, 
+      0 calc(100% - 20px)
+    );
+  }
+
+  .info-card::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 20px; height: 20px;
+    background: linear-gradient(135deg, transparent 50%, rgba(0, 240, 255, 0.5) 50%);
+  }
+
+  .info-text {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #c0c5d0;
+    letter-spacing: 0.02em;
+  }
+
+  .proceed-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    background: transparent;
+    border: 1px solid var(--cyan);
+    color: var(--cyan);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    padding: 14px 28px;
+    cursor: pointer;
+    margin-top: 10px;
+    align-self: flex-start;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .proceed-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--cyan);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: -1;
+  }
+
+  .proceed-btn:hover {
+    color: var(--bg-color);
+    box-shadow: 0 0 25px var(--cyan-glow);
+  }
+
+  .proceed-btn:hover::after {
+    opacity: 1;
+  }
+
+  footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding-top: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .footer-center {
+    color: var(--text-main);
+  }
+
+  .sparkle {
+    display: inline-block;
+    color: var(--cyan);
+    margin-right: 8px;
+    text-shadow: 0 0 10px var(--cyan);
+  }
+
+  /* Dashboard View */
+  .dashboard-view {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    background: var(--bg-color);
+    display: flex;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+  }
+
+  .dashboard-view.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .sidebar {
+    width: 260px;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(8, 11, 18, 0.95);
+    display: flex;
+    flex-direction: column;
+    padding: 30px 20px;
+    transition: width 0.3s ease, padding 0.3s ease;
+    position: relative;
+  }
+
+  .sidebar.collapsed {
+    width: 72px;
+    padding: 30px 12px;
+  }
+
+  .sidebar-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 40px;
+  }
+
+  .sidebar-brand {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.2rem;
+    color: var(--cyan);
+    letter-spacing: 0.1em;
+    text-shadow: 0 0 10px var(--cyan-glow);
+    white-space: nowrap;
+    overflow: hidden;
+    transition: opacity 0.2s ease, width 0.3s ease;
+  }
+
+  .sidebar.collapsed .sidebar-brand {
+    opacity: 0;
+    width: 0;
+    pointer-events: none;
+  }
+
+  .collapse-btn {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: var(--text-muted);
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  .collapse-btn:hover {
+    border-color: var(--cyan);
+    color: var(--cyan);
+    box-shadow: 0 0 8px var(--cyan-glow);
+  }
+
+  .sidebar-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    list-style: none;
+  }
+
+  .sidebar-item {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    padding: 12px 16px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    transition: all 0.2s ease;
+    border-left: 2px solid transparent;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    height: 46px;
+  }
+
+  .sidebar.collapsed .sidebar-item {
+    padding: 12px;
+    justify-content: center;
+  }
+
+  .sidebar.collapsed .sidebar-item span {
+    display: none;
+  }
+
+  .sidebar-item:hover, .sidebar-item.active {
+    color: var(--cyan);
+    background: rgba(0, 240, 255, 0.05);
+    border-left-color: var(--cyan);
+    text-shadow: 0 0 8px var(--cyan-glow);
+  }
+
+  .dashboard-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 40px;
+    overflow-y: auto;
+  }
+
+  .dash-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 20px;
+  }
+
+  .dash-content-area {
+    margin-top: 40px;
+    display: none;
+  }
+
+  .dash-content-area.active {
+    display: block;
+  }
+
+  /* Prompt Box Component Styles */
+  .prompt-studio-container {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    max-width: 900px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .advanced-prompt-box {
+    background: rgba(10, 14, 23, 0.85);
+    border: 1px solid rgba(0, 240, 255, 0.3);
+    padding: 24px;
+    backdrop-filter: blur(12px);
+    position: relative;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+  }
+
+  .prompt-textarea-wrapper {
+    position: relative;
+    margin-bottom: 16px;
+  }
+
+  .prompt-input {
+    width: 100%;
+    background: rgba(5, 5, 7, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: var(--text-main);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.05rem;
+    padding: 16px;
+    resize: none;
+    min-height: 120px;
+    line-height: 1.5;
+    transition: all 0.2s ease;
+  }
+
+  .prompt-input:focus {
+    outline: none;
+    border-color: var(--cyan);
+    box-shadow: 0 0 12px var(--cyan-glow);
+  }
+
+  .prompt-completion-ghost {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    right: 16px;
+    pointer-events: none;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.05rem;
+    line-height: 1.5;
+    color: rgba(140, 146, 164, 0.5);
+    white-space: pre-wrap;
+  }
+
+  .prompt-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding-top: 16px;
+  }
+
+  .prompt-tools-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .prompt-tool-btn {
+    background: rgba(5, 5, 7, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: var(--text-muted);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    padding: 8px 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    letter-spacing: 0.05em;
+  }
+
+  .prompt-tool-btn:hover {
+    border-color: var(--cyan);
+    color: var(--cyan);
+    background: rgba(0, 240, 255, 0.05);
+    box-shadow: 0 0 8px var(--cyan-glow);
+  }
+
+  .prompt-tool-btn.active {
+    border-color: var(--cyan);
+    color: var(--cyan);
+    background: rgba(0, 240, 255, 0.1);
+  }
+
+  .prompt-actions-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .mic-btn {
+    background: rgba(5, 5, 7, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: var(--text-muted);
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .mic-btn:hover, .mic-btn.listening {
+    border-color: var(--cyan);
+    color: var(--cyan);
+    background: rgba(0, 240, 255, 0.1);
+    box-shadow: 0 0 10px var(--cyan-glow);
+  }
+
+  .submit-prompt-btn {
+    background: var(--cyan);
+    color: var(--bg-color);
+    border: none;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    font-weight: bold;
+    padding: 10px 20px;
+    cursor: pointer;
+    letter-spacing: 0.1em;
+    transition: all 0.2s ease;
+    box-shadow: 0 0 15px var(--cyan-glow);
+  }
+
+  .submit-prompt-btn:hover {
+    background: #fff;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+  }
+
+  .dash-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+
+  /* CAD View Styles */
+  .cad-container {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 24px;
+    height: calc(100vh - 160px);
+  }
+
+  @media (max-width: 1024px) {
+    .cad-container {
+      grid-template-columns: 1fr;
+      height: auto;
+    }
+  }
+
+  .viewport-3d {
+    background: radial-gradient(circle at center, #0a1118 0%, #030508 100%);
+    border: 1px solid rgba(0, 240, 255, 0.2);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    perspective: 1000px;
+  }
+
+  .viewport-grid {
+    position: absolute;
+    inset: 0;
+    background-image: 
+      linear-gradient(rgba(0, 240, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 240, 255, 0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+    transform: perspective(500px) rotateX(60deg);
+    transform-origin: center top;
+    animation: gridMove 20s linear infinite;
+  }
+
+  @keyframes gridMove {
+    0% { background-position: 0 0; }
+    100% { background-position: 0 40px; }
+  }
+
+  .cad-model-3d {
+    width: 180px;
+    height: 180px;
+    position: relative;
+    transform-style: preserve-3d;
+    animation: rotateModel 12s infinite linear;
+  }
+
+  @keyframes rotateModel {
+    0% { transform: rotateX(20deg) rotateY(0deg); }
+    100% { transform: rotateX(380deg) rotateY(360deg); }
+  }
+
+  .cube-face {
+    position: absolute;
+    inset: 0;
+    border: 1px solid var(--cyan);
+    background: rgba(0, 240, 255, 0.05);
+    box-shadow: inset 0 0 15px var(--cyan-glow);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--cyan);
+  }
+
+  .cube-face::after {
+    content: '';
+    position: absolute;
+    inset: 12px;
+    border: 1px dashed rgba(0, 240, 255, 0.2);
+  }
+
+  .cube-front  { transform: translateZ(90px); }
+  .cube-back   { transform: rotateY(180deg) translateZ(90px); }
+  .cube-right  { transform: rotateY(90deg) translateZ(90px); }
+  .cube-left   { transform: rotateY(-90deg) translateZ(90px); }
+  .cube-top    { transform: rotateX(90deg) translateZ(90px); }
+  .cube-bottom { transform: rotateX(-90deg) translateZ(90px); }
+
+  .viewport-toolbar {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    display: flex;
+    gap: 8px;
+    z-index: 5;
+  }
+
+  .viewport-tool-btn {
+    background: rgba(5, 5, 7, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: var(--text-muted);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    padding: 6px 10px;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+    transition: all 0.2s ease;
+  }
+
+  .viewport-tool-btn:hover, .viewport-tool-btn.active {
+    border-color: var(--cyan);
+    color: var(--cyan);
+    box-shadow: 0 0 8px var(--cyan-glow);
+  }
+
+  .viewport-stats {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    background: rgba(5, 5, 7, 0.8);
+    padding: 6px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(4px);
+  }
+
+  .cad-sidebar-panel {
+    background: rgba(10, 14, 23, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .cad-panel-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.9rem;
+    color: var(--cyan);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding-bottom: 12px;
+  }
+
+  .cad-tree {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  .cad-tree-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .cad-tree-item:hover {
+    color: var(--cyan);
+    background: rgba(0, 240, 255, 0.05);
+  }
+
+  .cad-tree-item.active {
+    color: var(--cyan);
+    border-left: 2px solid var(--cyan);
+    background: rgba(0, 240, 255, 0.08);
+  }
+
+  /* Settings View Styles */
+  .settings-container {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    max-width: 800px;
+  }
+
+  .settings-group {
+    background: rgba(10, 14, 23, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .settings-group-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1rem;
+    color: var(--cyan);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding-bottom: 12px;
+  }
+
+  .setting-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .setting-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .setting-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.95rem;
+    color: var(--text-main);
+  }
+
+  .setting-desc {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  /* Custom Toggle Switch */
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 48px;
+    height: 24px;
+    flex-shrink: 0;
+  }
+
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: 0.3s;
+  }
+
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 3px;
+    bottom: 3px;
+    background-color: var(--text-muted);
+    transition: 0.3s;
+  }
+
+  input:checked + .slider {
+    background-color: rgba(0, 240, 255, 0.2);
+    border-color: var(--cyan);
+  }
+
+  input:checked + .slider:before {
+    transform: translateX(24px);
+    background-color: var(--cyan);
+    box-shadow: 0 0 8px var(--cyan);
+  }
+
+  .setting-input {
+    background: rgba(5, 5, 7, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--text-main);
+    font-family: 'Share Tech Mono', monospace;
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    width: 200px;
+  }
+
+  .setting-input:focus {
+    outline: none;
+    border-color: var(--cyan);
+    box-shadow: 0 0 8px var(--cyan-glow);
+  }
+
+  @media (max-width: 900px) {
+    .dashboard-view {
+      flex-direction: column;
+    }
+    .sidebar {
+      width: 100% !important;
+      padding: 15px 20px !important;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      overflow-x: auto;
+    }
+    .sidebar-top {
+      margin-bottom: 0;
+      width: 100%;
+    }
+    .sidebar-brand {
+      opacity: 1 !important;
+      width: auto !important;
+    }
+    .collapse-btn {
+      display: none;
+    }
+    .sidebar-menu {
+      flex-direction: row;
+      gap: 10px;
+      display: none;
+    }
+    .dash-grid {
+      grid-template-columns: 1fr;
+    }
+    .setting-row {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .setting-input {
+      width: 100%;
+    }
+  }
+
+  .dash-card {
+    background: rgba(10, 14, 23, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 180px;
+  }
+
+  .dash-card-title {
+    font-family: 'Share Tech Mono', monospace;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .dash-card-value {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 2rem;
+    color: var(--cyan);
+    text-shadow: 0 0 10px var(--cyan-glow);
+  }
+
+  .back-btn {
+    background: transparent;
+    border: 1px solid var(--text-muted);
+    color: var(--text-main);
+    font-family: 'Share Tech Mono', monospace;
+    padding: 8px 16px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    transition: all 0.2s ease;
+  }
+
+  .back-btn:hover {
+    border-color: var(--cyan);
+    color: var(--cyan);
+  }
+</style>
+</head>
+<body>
+
+  <div class="bg-hero"></div>
+
+  <div class="container" id="landingContainer">
+    <header>
+      <div class="logo-tag"><span class="sparkle">+</span>// Code at the Speed of Thoughts //</div>
+      <div class="header-right">
+        <button class="fullscreen-btn" id="fullscreenBtn" title="Toggle Fullscreen">
+          <span>[FS]</span> Fullscreen
+        </button>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="title-section">
+        <h1 class="brand-title">Typeless</h1>
+        <div class="sub-title">
+          Code at the Speed of Thoughts
+        </div>
+        <button class="proceed-btn" id="proceedBtn">
+          Proceed <span class="sparkle">&gt;&gt;</span>
+        </button>
+      </div>
+
+      <div class="info-card">
+        <p class="info-text">
+          Futuristic sans-serif display interface featuring wide proportions, sharp geometric angles, and subtle diagonal cutouts.
+        </p>
+      </div>
+    </main>
+
+    <footer>
+      <div>Otf &amp; Ttf</div>
+      <div class="footer-center">Multilingual Support</div>
+      <div>&copy; 2026</div>
+    </footer>
+  </div>
+
+  <div class="dashboard-view" id="dashboardView">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-top">
+        <div class="sidebar-brand">Typeless</div>
+        <button class="collapse-btn" id="collapseBtn" title="Toggle Menu">&lt;&gt;</button>
+      </div>
+      <ul class="sidebar-menu">
+        <li class="sidebar-item active" data-title="typeless prompt" data-target="overviewArea"><span>typeless prompt</span></li>
+        <li class="sidebar-item" data-title="component blocks" data-target="overviewArea"><span>component blocks</span></li>
+        <li class="sidebar-item" data-title="image/CAD" data-target="cadArea"><span>image/CAD</span></li>
+        <li class="sidebar-item" data-title="/Skilled" data-target="overviewArea"><span>/Skilled</span></li>
+        <li class="sidebar-item" data-title="Settings" data-target="settingsArea"><span>Settings</span></li>
+      </ul>
+    </aside>
+    <div class="dashboard-main">
+      <div class="dash-header">
+        <div class="logo-tag" id="currentSectionTitle"><span class="sparkle">+</span>// TYPELESS PROMPT //</div>
+        <button class="back-btn" id="backBtn">&lt;&lt; Return</button>
+      </div>
+
+      <!-- Overview Content Area -->
+      <div class="dash-content-area active" id="overviewArea">
+        <div class="prompt-studio-container">
+          <div class="advanced-prompt-box">
+            <div class="prompt-textarea-wrapper">
+              <div class="prompt-completion-ghost" id="ghostText">Generate high-performance turbine manifold with dual cooling channels...</div>
+              <textarea class="prompt-input" id="promptInput" placeholder="Enter generative prompt instruction...">Generate high-performance turbine manifold with dual cooling channels</textarea>
+            </div>
+            <div class="prompt-toolbar">
+              <div class="prompt-tools-left">
+                <button class="prompt-tool-btn" id="completionBtn" title="Toggle Prompt Completion">
+                  <span>[PC]</span> Completion
+                </button>
+                <button class="prompt-tool-btn" id="enhanceBtn" title="Enhance Prompt via Neural Engine">
+                  <span>[+]</span> Enhance
+                </button>
+                <button class="prompt-tool-btn" id="imgToPromptBtn" title="Upload Image to Prompt">
+                  <span>[IMG]</span> Image-to-Prompt
+                </button>
+              </div>
+              <div class="prompt-actions-right">
+                <button class="mic-btn" id="micBtn" title="Voice Dictation Input">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v1a7 7 0 0 1-14 0v-1"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+                </button>
+                <button class="submit-prompt-btn" id="submitPrompt">Execute &gt;&gt;</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="dash-grid" id="dashGrid">
+            <div class="dash-card">
+              <div class="dash-card-title">Active Nodes</div>
+              <div class="dash-card-value">1,024</div>
+            </div>
+            <div class="dash-card">
+              <div class="dash-card-title">Latency</div>
+              <div class="dash-card-value">0.4ms</div>
+            </div>
+            <div class="dash-card">
+              <div class="dash-card-title">Throughput</div>
+              <div class="dash-card-value">99.9%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CAD Content Area -->
+      <div class="dash-content-area" id="cadArea">
+        <div class="cad-container">
+          <div class="viewport-3d">
+            <div class="viewport-grid"></div>
+            <div class="viewport-toolbar">
+              <button class="viewport-tool-btn active">ROT</button>
+              <button class="viewport-tool-btn">PAN</button>
+              <button class="viewport-tool-btn">ZOOM</button>
+              <button class="viewport-tool-btn">WIRE</button>
+            </div>
+            <div class="viewport-stats">POLY: 12.4K | FPS: 60</div>
+            <div class="cad-model-3d">
+              <div class="cube-face cube-front">FRONT</div>
+              <div class="cube-face cube-back">BACK</div>
+              <div class="cube-face cube-right">RIGHT</div>
+              <div class="cube-face cube-left">LEFT</div>
+              <div class="cube-face cube-top">TOP</div>
+              <div class="cube-face cube-bottom">BTM</div>
+            </div>
+          </div>
+          <div class="cad-sidebar-panel">
+            <div class="cad-panel-title">Component Tree</div>
+            <div class="cad-tree">
+              <div class="cad-tree-item active">&gt; Root_Assembly</div>
+              <div class="cad-tree-item" style="padding-left: 20px;">+ Chassis_Core</div>
+              <div class="cad-tree-item" style="padding-left: 20px;">+ Actuator_Array</div>
+              <div class="cad-tree-item" style="padding-left: 20px;">+ Thermal_Sink_A</div>
+              <div class="cad-tree-item">&gt; Constraints_Rigid</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings Content Area -->
+      <div class="dash-content-area" id="settingsArea">
+        <div class="settings-container">
+          <div class="settings-group">
+            <div class="settings-group-title">Environment Configuration</div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <span class="setting-label">Neural Acceleration</span>
+                <span class="setting-desc">Enable hardware-level tensor routing for faster parsing</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <span class="setting-label">Real-time Telemetry</span>
+                <span class="setting-desc">Stream sub-system diagnostics to background monitors</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <div class="settings-group-title">Interface Parameters</div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <span class="setting-label">Interface Alias</span>
+                <span class="setting-desc">Designator string shown in execution logs</span>
+              </div>
+              <input type="text" class="setting-input" value="OPERATOR-01">
+            </div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <span class="setting-label">Cinematic Glow Effect</span>
+                <span class="setting-desc">Render ambient neon dispersion on primary components</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const proceedBtn = document.getElementById('proceedBtn');
+    const backBtn = document.getElementById('backBtn');
+    const landingContainer = document.getElementById('landingContainer');
+    const dashboardView = document.getElementById('dashboardView');
+    const sidebarItems = document.querySelectorAll('.sidebar-item');
+    const collapseBtn = document.getElementById('collapseBtn');
+    const sidebar = document.getElementById('sidebar');
+    const currentSectionTitle = document.getElementById('currentSectionTitle');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const overviewArea = document.getElementById('overviewArea');
+    const cadArea = document.getElementById('cadArea');
+    const settingsArea = document.getElementById('settingsArea');
+
+    // Prompt Tools Interaction
+    const completionBtn = document.getElementById('completionBtn');
+    const enhanceBtn = document.getElementById('enhanceBtn');
+    const imgToPromptBtn = document.getElementById('imgToPromptBtn');
+    const micBtn = document.getElementById('micBtn');
+    const promptInput = document.getElementById('promptInput');
+    const ghostText = document.getElementById('ghostText');
+    const submitPrompt = document.getElementById('submitPrompt');
+
+    let completionActive = true;
+
+    completionBtn.addEventListener('click', () => {
+      completionActive = !completionActive;
+      completionBtn.classList.toggle('active', completionActive);
+      ghostText.style.display = completionActive ? 'block' : 'none';
+    });
+
+    enhanceBtn.addEventListener('click', () => {
+      enhanceBtn.classList.add('active');
+      const current = promptInput.value;
+      promptInput.value = current + ", optimized topology, zero-stress concentration curves";
+      ghostText.textContent = "";
+      setTimeout(() => enhanceBtn.classList.remove('active'), 600);
+    });
+
+    imgToPromptBtn.addEventListener('click', () => {
+      imgToPromptBtn.classList.add('active');
+      promptInput.value = "[Image Input Matrix Loaded] -> Extracting volumetric constraints...";
+      ghostText.textContent = "";
+      setTimeout(() => imgToPromptBtn.classList.remove('active'), 800);
+    });
+
+    micBtn.addEventListener('click', () => {
+      micBtn.classList.toggle('listening');
+      if (micBtn.classList.contains('listening')) {
+        promptInput.placeholder = "Listening to audio stream...";
+        promptInput.value = "";
+        ghostText.textContent = "Synthesizing vocal command tokens...";
+      } else {
+        promptInput.placeholder = "Enter generative prompt instruction...";
+        promptInput.value = "Construct primary spatial skeleton with carbon-composite lattice";
+        ghostText.textContent = "";
+      }
+    });
+
+    submitPrompt.addEventListener('click', () => {
+      submitPrompt.textContent = "Processing...";
+      setTimeout(() => {
+        submitPrompt.textContent = "Execute >>";
+      }, 1000);
+    });
+
+    fullscreenBtn.addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+          console.error(`Error attempting to enable fullscreen: ${err.message}`);
+        });
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    });
+
+    proceedBtn.addEventListener('click', () => {
+      landingContainer.style.opacity = '0';
+      landingContainer.style.transform = 'scale(0.98)';
+      setTimeout(() => {
+        landingContainer.style.display = 'none';
+        dashboardView.classList.add('active');
+      }, 300);
+    });
+
+    backBtn.addEventListener('click', () => {
+      dashboardView.classList.remove('active');
+      landingContainer.style.display = 'flex';
+      setTimeout(() => {
+        landingContainer.style.opacity = '1';
+        landingContainer.style.transform = 'scale(1)';
+      }, 50);
+    });
+
+    collapseBtn.addEventListener('click', () => {
+      sidebar.classList.toggle('collapsed');
+    });
+
+    sidebarItems.forEach(item => {
+      item.addEventListener('click', () => {
+        sidebarItems.forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+        const titleText = item.getAttribute('data-title');
+        currentSectionTitle.innerHTML = `<span class="sparkle">+</span>// ${titleText.toUpperCase()} //`;
+
+        overviewArea.classList.remove('active');
+        cadArea.classList.remove('active');
+        settingsArea.classList.remove('active');
+
+        if (titleText.toLowerCase() === 'settings') {
+          settingsArea.classList.add('active');
+        } else if (titleText.toLowerCase().includes('cad')) {
+          cadArea.classList.add('active');
+        } else {
+          overviewArea.classList.add('active');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
